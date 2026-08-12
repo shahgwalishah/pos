@@ -14,6 +14,7 @@ import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
 import StaffPage from './StaffPage';
 import StripeCheckout from './StripeCheckout';
+import { apiUrl } from './lib/api';
 
 const money = (value) => `Rs. ${Number(value).toLocaleString('en-PK')}`;
 
@@ -97,7 +98,7 @@ export default function App() {
 
   const sendReceiptNotification = async (completedReceipt) => {
     const { data } = await supabase.auth.getSession();
-    const response = await fetch('/api/email/receipt', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token}` }, body: JSON.stringify({ storeName: store.name, receipt: completedReceipt }) });
+    const response = await fetch(apiUrl('/api/email/receipt'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token}` }, body: JSON.stringify({ storeName: store.name, receipt: completedReceipt }) });
     const result = await response.json().catch(() => ({}));
     setReceipt((current) => current?.id === completedReceipt.id ? { ...current, emailStatus: response.ok ? `Receipt emailed to ${result.to}` : result.message || 'Email notification failed.' } : current);
   };

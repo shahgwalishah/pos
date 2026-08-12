@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isMailConfigured, sendReceiptEmail } from './mailer.js';
 import Stripe from 'stripe';
+import cors from 'cors';
 
 const here = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(here, '..', '.env') });
@@ -12,6 +13,8 @@ const supabaseUrl = process.env.SUPABASE_URL || 'https://vrrodecylfihoqygeiab.su
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_7DOaxnrTU1esznX-DyvHFg_sXCt7DMY';
 const recentEmails = new Map();
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+const configuredOrigins = String(process.env.CLIENT_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean);
+const allowedOrigins = new Set(['http://localhost:5173', 'http://localhost:4000', ...configuredOrigins]);
 
 const authenticate = async (req) => {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
@@ -63,6 +66,14 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
   } catch (error) { res.status(400).send(`Webhook error: ${error.message}`); }
 });
 
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin) || /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return callback(null, true);
+    callback(new Error('Origin is not allowed by CORS.'));
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '100kb' }));
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', database: 'supabase-postgresql', mail: isMailConfigured() ? 'configured' : 'not-configured', stripe: stripe ? 'configured' : 'not-configured' }));
 

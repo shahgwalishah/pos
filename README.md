@@ -127,6 +127,8 @@ Frontend: http://localhost:5173
 API:      http://localhost:4000
 ```
 
+During `npm run dev`, Vite proxies `/api` requests to `https://counterly-api.vercel.app`. The local UI therefore uses the live backend without browser CORS restrictions. Production builds use `VITE_API_URL` directly.
+
 Production-style local run:
 
 ```bash
@@ -144,6 +146,7 @@ Create `client/.env` from `client/.env.example`:
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+VITE_API_URL=https://counterly-api.vercel.app
 ```
 
 Create `server/.env` from `server/.env.example`:
@@ -153,6 +156,7 @@ PORT=4000
 
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
+CLIENT_URL=https://pos-two-puce.vercel.app
 
 MAIL_DRIVER=smtp
 MAIL_HOST=smtp.gmail.com
