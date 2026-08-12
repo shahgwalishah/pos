@@ -20,6 +20,7 @@ Counterly is an interview-ready, Square-inspired Point of Sale application. It s
 ### Authentication
 
 - Email/password sign up and sign in
+- Forgot-password email and secure password recovery flow
 - Google Sign-In
 - Persistent Supabase sessions
 - Secure logout
@@ -218,6 +219,14 @@ https://YOUR_SUPABASE_PROJECT_REF.supabase.co/auth/v1/callback
 Then enable Google under Supabase Dashboard → Authentication → Providers and enter the Google Client ID and Client Secret.
 
 In Supabase Dashboard → Authentication → URL Configuration, add local and production application URLs to the redirect allow list.
+
+Password recovery uses the same application origins. Ensure these are included:
+
+```text
+https://pos-two-puce.vercel.app/**
+http://localhost:5173/**
+http://localhost:4000/**
+```
 
 ## Stripe sandbox configuration
 

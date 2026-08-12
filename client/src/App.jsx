@@ -21,6 +21,7 @@ const money = (value) => `Rs. ${Number(value).toLocaleString('en-PK')}`;
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [store, setStore] = useState(null);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
@@ -43,7 +44,7 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setUser(data.session?.user || null); setAuthLoading(false); });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user || null); setAuthLoading(false); });
+    const { data } = supabase.auth.onAuthStateChange((event, session) => { if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true); setUser(session?.user || null); setAuthLoading(false); });
     return () => data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
@@ -138,7 +139,7 @@ export default function App() {
   };
 
   if (authLoading) return <div className="app-loading"><div className="brand-mark">C</div><p>Loading Counterly…</p></div>;
-  if (!user) return <AuthPage onAuthenticated={setUser} />;
+  if (!user || passwordRecovery) return <AuthPage recovery={passwordRecovery} onRecoveryComplete={() => { setPasswordRecovery(false); setUser(null); }} onAuthenticated={setUser} />;
   return <div className="app-shell">
     <header><div className="brand-mark">C</div><div><h1>{store?.name || 'Counterly'}</h1><p>Point of Sale</p></div><button className={`shift ${activeShift ? '' : 'shift-closed'}`} onClick={() => setActivePage('shifts')}><span className="live-dot" /> {activeShift ? `Shift #${activeShift.id} open` : 'Shift closed'} <b>{user.user_metadata?.full_name || user.email}</b></button><button className="logout" onClick={logout} title="Sign out"><LogOut size={18}/></button></header>
     <div className="workspace"><Sidebar active={activePage} onChange={setActivePage}/>{activePage === 'dashboard' ? <Dashboard store={store} onOpenRegister={() => setActivePage('register')} onOpenProducts={() => setActivePage('products')}/> : activePage === 'products' ? <ProductsPage store={store}/> : activePage === 'inventory' ? <InventoryPage store={store}/> : activePage === 'sales' ? <SalesPage store={store}/> : activePage === 'customers' ? <CustomersPage store={store}/> : activePage === 'staff' ? <StaffPage store={store} user={user}/> : activePage === 'shifts' ? <ShiftsPage store={store} user={user} activeShift={activeShift} onShiftChange={(shift) => { setActiveShift(shift); setTimeout(loadActiveShift, 50); }}/> : activePage === 'reports' ? <ReportsPage store={store}/> : activePage === 'settings' ? <SettingsPage store={store} onSaved={setStore}/> : activePage !== 'register' ? <section className="module-placeholder"><span className="eyebrow">Coming next</span><h2>{activePage.charAt(0).toUpperCase() + activePage.slice(1)}</h2><p>This module is queued in the step-by-step implementation.</p></section> : <main className="pos-main">
