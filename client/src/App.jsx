@@ -72,6 +72,12 @@ export default function App() {
     setActiveShift({ ...data, liveCashSales: (sales || []).reduce((sum, sale) => sum + (sale.payments || []).reduce((n, p) => n + Number(p.amount), 0), 0) });
   };
   useEffect(() => { loadActiveShift(); }, [store, user]);
+  useEffect(() => {
+    if (!receipt) return;
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setReceipt(null); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [receipt]);
 
   const add = (product) => {
     if (!product.stock) return;
@@ -170,6 +176,6 @@ export default function App() {
       </div>
     </div></div>}
     {heldOpen && <HeldOrdersModal store={store} onClose={() => setHeldOpen(false)} onResume={resumeOrder}/>} 
-    {receipt && <div className="modal-backdrop receipt-backdrop"><div className="receipt"><div className="success"><Check size={32}/></div><span className="eyebrow">Payment successful</span><h2>{money(receipt.total)}</h2><p>Order #{receipt.id} · {receipt.paymentMethod} · {new Date(receipt.paidAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p><div className="receipt-items">{receipt.items.map((i) => <div key={i.name}><span>{i.quantity} × {i.name}</span><b>{money(i.price * i.quantity)}</b></div>)}<div><span>Subtotal</span><b>{money(receipt.subtotal)}</b></div><div><span>Tax</span><b>{money(receipt.tax)}</b></div>{receipt.discount > 0 && <div><span>Discount</span><b>− {money(receipt.discount)}</b></div>}{receipt.cashReceived !== null && <><div><span>Cash received</span><b>{money(receipt.cashReceived)}</b></div><div className="receipt-change"><span>Change</span><b>{money(receipt.change)}</b></div></>}</div>{receipt.note && <div className="receipt-note"><ReceiptText size={15}/><span>{receipt.note}</span></div>}<div className="email-status"><Mail size={15}/><span>{receipt.emailStatus}</span></div><div className="receipt-actions"><button className="print-receipt" onClick={() => window.print()}>Print receipt</button><button onClick={() => setReceipt(null)}>Start new order</button></div></div></div>}
+    {receipt && <div className="modal-backdrop receipt-backdrop" onClick={() => setReceipt(null)}><div className="receipt" onClick={(event) => event.stopPropagation()}><button className="receipt-close" onClick={() => setReceipt(null)} title="Close receipt" aria-label="Close receipt"><X size={19}/></button><div className="success"><Check size={32}/></div><span className="eyebrow">Payment successful</span><h2>{money(receipt.total)}</h2><p>Order #{receipt.id} · {receipt.paymentMethod} · {new Date(receipt.paidAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p><div className="receipt-items">{receipt.items.map((i) => <div key={i.name}><span>{i.quantity} × {i.name}</span><b>{money(i.price * i.quantity)}</b></div>)}<div><span>Subtotal</span><b>{money(receipt.subtotal)}</b></div><div><span>Tax</span><b>{money(receipt.tax)}</b></div>{receipt.discount > 0 && <div><span>Discount</span><b>− {money(receipt.discount)}</b></div>}{receipt.cashReceived !== null && <><div><span>Cash received</span><b>{money(receipt.cashReceived)}</b></div><div className="receipt-change"><span>Change</span><b>{money(receipt.change)}</b></div></>}</div>{receipt.note && <div className="receipt-note"><ReceiptText size={15}/><span>{receipt.note}</span></div>}<div className="email-status"><Mail size={15}/><span>{receipt.emailStatus}</span></div><div className="receipt-actions"><button className="print-receipt" onClick={() => window.print()}>Print receipt</button><button onClick={() => setReceipt(null)}>Start new order</button></div></div></div>}
   </div>;
 }
