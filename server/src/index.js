@@ -66,6 +66,13 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
 app.use(express.json({ limit: '100kb' }));
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', database: 'supabase-postgresql', mail: isMailConfigured() ? 'configured' : 'not-configured', stripe: stripe ? 'configured' : 'not-configured' }));
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Counterly API is running'
+  });
+});
+
 app.post('/api/stripe/payment-intent', async (req, res) => {
   if (!stripe) return res.status(503).json({ message: 'Stripe is not configured.' });
   const auth = await authenticate(req);
